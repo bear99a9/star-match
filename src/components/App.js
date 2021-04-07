@@ -1,16 +1,6 @@
 import React, { useState } from 'react';
 
-const PlayNumber = props => (
-  <button
-    className="number"
-    style={{ backgroundColor: colors[props.status] }}
-    onClick={() => console.log('Num', props.number)}
-  >
-    {props.number}
-  </button>
-);
-
-const StarDisplay = props => (
+const StarsDisplay = props => (
   <>
     {utils.range(1, props.count).map(starId => (
       <div key={starId} className="star" />
@@ -18,23 +8,55 @@ const StarDisplay = props => (
   </>
 );
 
+const PlayNumber = props => (
+  <button
+    className="number"
+    style={{ backgroundColor: colors[props.status] }}
+    onClick={() => props.onClick(props.number, props.status)}
+  >
+    {props.number}
+  </button>
+);
+
 const StarMatch = () => {
   const [stars, setStars] = useState(utils.random(1, 9));
-  const [availableNums, setAvailableNums] = useState([1, 2, 3, 4, 5]);
-  const [candidateNums, setcandidateNum] = useState([2, 3]);
+  const [availableNums, setAvailableNums] = useState(utils.range(1, 9));
+  const [candidateNums, setCandidateNums] = useState([]);
 
-  const candidateAreWrong = utils.sum(candidateNums) > stars;
+  const candidatesAreWrong = utils.sum(candidateNums) > stars;
 
   const numberStatus = number => {
     if (!availableNums.includes(number)) {
       return 'used';
     }
     if (candidateNums.includes(number)) {
-      return candidateAreWrong ? 'wrong' : 'candidate';
+      return candidatesAreWrong ? 'wrong' : 'candidate';
     }
-
     return 'available';
   };
+
+  const onNumberClick = (number, currentStatus) => {
+    if (currentStatus === 'used') {
+      return;
+    }
+
+    const newCandidateNums =
+      currentStatus === 'available'
+        ? candidateNums.concat(number)
+        : candidateNums.filter(cn => cn !== number);
+
+    if (utils.sum(newCandidateNums) !== stars) {
+      setCandidateNums(newCandidateNums);
+    } else {
+      const newAvailableNums = availableNums.filter(
+        n => !newCandidateNums.includes(n),
+      );
+      setStars(utils.randomSumIn(newAvailableNums, 9));
+      setAvailableNums(newAvailableNums);
+      setCandidateNums([]);
+    }
+  };
+
   return (
     <div className="game">
       <div className="help">
@@ -42,7 +64,7 @@ const StarMatch = () => {
       </div>
       <div className="body">
         <div className="left">
-          <StarDisplay count={stars} />
+          <StarsDisplay count={stars} />
         </div>
         <div className="right">
           {utils.range(1, 9).map(number => (
@@ -50,6 +72,7 @@ const StarMatch = () => {
               key={number}
               status={numberStatus(number)}
               number={number}
+              onClick={onNumberClick}
             />
           ))}
         </div>
