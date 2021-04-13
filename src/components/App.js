@@ -70,7 +70,7 @@ const StarMatch = () => {
   };
 
   const onNumberClick = (number, currentStatus) => {
-    if (currentStatus === 'used') {
+    if (gameStatus !== 'active' || currentStatus === 'used') {
       return;
     }
 
